@@ -74,11 +74,34 @@ def parser(product_dict: Dict):
         if rating >= 4.5 and price <= 10000 and all_specifications.get("Страна производства", []) == "Россия":
             selection_of_goods.append(data)
 
-    df_items = pd.DataFrame(items)
-    df_items.to_csv("result.csv", mode='a', header=False, index=False)
+    save_xlsx(items, selection_of_goods)
 
-    df_select = pd.DataFrame(selection_of_goods)
-    df_select.to_csv("selection_of_goods.csv", mode='a', header=False, index=False)
+
+def save_xlsx(items, selection_of_goods):
+
+    try:
+        df_items = pd.DataFrame(items)
+        existing_df = pd.read_excel("result.xlsx", sheet_name="wildberries")
+        combined_df = pd.concat([existing_df, df_items], ignore_index=True)
+
+        with pd.ExcelWriter("result.xlsx", engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            combined_df.to_excel(writer, sheet_name="wildberries", index=False)
+
+    except (FileNotFoundError, ValueError):
+        with pd.ExcelWriter("result.xlsx", engine='openpyxl', mode='w') as writer:
+            df_items.to_excel(writer, sheet_name="wildberries", index=False)
+
+    try:
+        df_select = pd.DataFrame(selection_of_goods)
+        existing_df = pd.read_excel("selection_of_goods.xlsx", sheet_name="wildberries")
+        combined_df = pd.concat([existing_df, df_select], ignore_index=True)
+
+        with pd.ExcelWriter("selection_of_goods.xlsx", engine='openpyxl', mode='a', if_sheet_exists='replace') as writer_selection:
+            combined_df.to_excel(writer_selection, sheet_name="wildberries", index=False)
+
+    except (FileNotFoundError, ValueError):
+        with pd.ExcelWriter("selection_of_goods.xlsx", engine='openpyxl', mode='w') as writer_selection:
+            df_select.to_excel(writer_selection, sheet_name="wildberries", index=False)
 
 
 def main():
